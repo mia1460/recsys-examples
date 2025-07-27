@@ -303,8 +303,9 @@ class InferenceRankingGR(torch.nn.Module):
                     kv_cache_metadata,
                 )
 
-        # cudagraph preparation
-        copy_kvcache_metadata(self._kvcache_metadata, kv_cache_metadata)
+        if self.use_cudagraph:
+            # cudagraph preparation
+            copy_kvcache_metadata(self._kvcache_metadata, kv_cache_metadata)
         # preparation due to cudagraph codepath
         kv_cache_metadata.onload_history_kv_buffer = (
             self._kvcache_metadata.onload_history_kv_buffer[:]
@@ -392,7 +393,7 @@ class InferenceRankingGR(torch.nn.Module):
                     num_tokens,
                     jagged_data.values,
                     jagged_data,
-                    self._kvcache_metadata,
+                    kvcache_metadata,
                 )
                 jagged_data.values = hstu_output
 

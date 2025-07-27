@@ -196,9 +196,11 @@ class PagedHSTUInferLayer(torch.nn.Module):
             0,  # NHD layout
         )
 
-        kv_cache_metadata.onload_history_kv_events[self.layer_idx].wait(
-            torch.cuda.current_stream()
-        )
+        if kv_cache_metadata.onload_history_kv_events is not None:
+            kv_cache_metadata.onload_history_kv_events[self.layer_idx].wait(
+                torch.cuda.current_stream()
+            )
+
         jagged_attn_output = hstu_attn.hstu_attn_varlen_func(
             query,
             key,
