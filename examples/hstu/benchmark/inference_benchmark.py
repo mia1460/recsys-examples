@@ -29,7 +29,7 @@ from inference_ranking_gr import InferenceRankingGR
 
 
 def run_ranking_gr_inference():
-    max_batch_size = 16
+    max_batch_size = 2
     max_seqlen = 4096
     max_num_candidates = 256
     max_incremental_seqlen = 128
@@ -107,7 +107,7 @@ def run_ranking_gr_inference():
             hstu_config=hstu_config,
             kvcache_config=kv_cache_config,
             task_config=task_config,
-            use_cudagraph=True,
+            use_cudagraph=False,
             cudagraph_configs=hstu_cudagraph_configs,
         )
         model_predict.bfloat16()
