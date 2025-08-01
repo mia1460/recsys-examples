@@ -81,6 +81,7 @@ class PagedHSTUInferLayer(torch.nn.Module):
         for param in self._linear_uvqk.parameters():
             param.requires_grad = False
             param.copy_(torch.empty_like(param).uniform_(-0.5, 0.5))
+        self._linear_uvqk_weight = self._linear_uvqk.weight.T.contiguous()
 
         # input norm
         if config.learnable_input_layernorm:
@@ -180,7 +181,7 @@ class PagedHSTUInferLayer(torch.nn.Module):
 
         kv_cache_table = kv_cache_metadata.kv_cache_table[self.layer_idx]
         (paged_k_cache, paged_v_cache) = kv_cache_table.unbind(dim=1)
-        paged_kvcache_ops.append_kvcache(
+        paged_kvcache_ops.append_kvcache( # /workspace/recsys-examples/examples/hstu/ops/cuda_ops/csrc/paged_kvcache_ops_cuda.cpp:62
             key,
             value,
             kv_cache_metadata.batch_indices,
@@ -196,9 +197,11 @@ class PagedHSTUInferLayer(torch.nn.Module):
             0,  # NHD layout
         )
 
-        kv_cache_metadata.onload_history_kv_events[self.layer_idx].wait(
-            torch.cuda.current_stream()
-        )
+        if kv_cache_metadata.onload_history_kv_events is not None:
+            kv_cache_metadata.onload_history_kv_events[self.layer_idx].wait(
+                torch.cuda.current_stream()
+            )
+        
         jagged_attn_output = hstu_attn.hstu_attn_varlen_func(
             query,
             key,
@@ -257,7 +260,13 @@ class PagedHSTUInferLayer(torch.nn.Module):
             eps=self._eps,
         )
 
-        self.uvqk_buffer_[:num_tokens, ...] = F.silu(self._linear_uvqk(normed_input))
+        torch.addmm(
+            self._linear_uvqk.bias,
+            normed_input,
+            self._linear_uvqk_weight,
+            out=self.uvqk_buffer_[:num_tokens, ...],
+        )
+        F.silu(self.uvqk_buffer_[:num_tokens, ...], inplace=True)
         (user, value, query, key) = torch.split(
             self.uvqk_buffer_[:num_tokens, ...],
             self._split_arg_list,

@@ -104,7 +104,7 @@ class InferenceRankingGR(torch.nn.Module):
         cudagraph_configs=None,
     ):
         super().__init__()
-        self._device = torch.cuda.current_device()
+        self._device = torch.device("cuda", torch.cuda.current_device())
         self._hstu_config = hstu_config
         self._task_config = task_config
 
@@ -114,9 +114,9 @@ class InferenceRankingGR(torch.nn.Module):
                 ebc_config.dim == self._embedding_dim
             ), "hstu layer hidden size should equal to embedding dim"
 
-        self._logit_dim_list = [
-            layer_sizes[-1] for layer_sizes in task_config.prediction_head_arch
-        ]
+        # self._logit_dim_list = [
+        #     layer_sizes[-1] for layer_sizes in task_config.prediction_head_arch
+        # ]
         self._embedding_collection = InferenceEmbedding(task_config.embedding_configs)
         # temporary using a non-sharing GPU embedding
         self._embedding_collection.to_empty(device=torch.device("cpu"))
@@ -127,17 +127,6 @@ class InferenceRankingGR(torch.nn.Module):
         )
 
         self._hstu_block = HSTUBlockInference(hstu_config, kvcache_config)
-        self._dense_module = MLP(
-            self._embedding_dim,
-            task_config.prediction_head_arch[0],
-            task_config.prediction_head_act_type,
-            task_config.prediction_head_bias,
-            device=self._device,
-        )
-
-        self._hstu_block = self._hstu_block.cuda()
-        self._dense_module = self._dense_module.cuda()
-
         dtype = (
             torch.bfloat16
             if hstu_config.bf16
@@ -145,7 +134,20 @@ class InferenceRankingGR(torch.nn.Module):
             if hstu_config.fp16
             else torch.float32
         )
-        device = torch.cuda.current_device()
+        self._dense_module = MLP(
+            self._embedding_dim,
+            task_config.prediction_head_arch,
+            task_config.prediction_head_act_type,
+            task_config.prediction_head_bias,
+            device=self._device,
+            dtype=dtype,
+        )
+
+        self._hstu_block = self._hstu_block.cuda()
+        self._dense_module = self._dense_module.cuda()
+
+        
+        device = torch.device("cuda", torch.cuda.current_device())
 
         max_batch_size = kvcache_config.max_batch_size
         max_seq_len = kvcache_config.max_seq_len
@@ -222,7 +224,7 @@ class InferenceRankingGR(torch.nn.Module):
             )
             if gpu_sp > host_sp + host_len and not allow_bubble:
                 warnings.warn(
-                    "KVdata missing between host storage and gpu kvcache for user {uid}"
+                    f"KVdata missing between host storage and gpu kvcache for user {uid}"
                 )
                 length = host_len
             kvdata_start_pos.append(sp)
@@ -302,9 +304,10 @@ class InferenceRankingGR(torch.nn.Module):
                     onload_length,
                     kv_cache_metadata,
                 )
-
-        # cudagraph preparation
-        copy_kvcache_metadata(self._kvcache_metadata, kv_cache_metadata)
+        
+        if self.use_cudagraph:
+            # cudagraph preparation
+            copy_kvcache_metadata(self._kvcache_metadata, kv_cache_metadata)
         # preparation due to cudagraph codepath
         kv_cache_metadata.onload_history_kv_buffer = (
             self._kvcache_metadata.onload_history_kv_buffer[:]
@@ -362,8 +365,10 @@ class InferenceRankingGR(torch.nn.Module):
                 embeddings=self._embedding_collection(batch.features),
                 batch=batch,
             )
-
             num_tokens = batch.features.values().shape[0]
+            print(f"seqlen is {jagged_data.seqlen}, candidates is {jagged_data.num_candidates}")
+            print(f"max_seqlen is {jagged_data.max_seqlen}, max_num_candidates is {jagged_data.max_num_candidates}")
+            print(f"seqlen_offsets is {jagged_data.seqlen_offsets}, candidates is {jagged_data.num_candidates_offsets}")
             if self.use_cudagraph:
                 self._hidden_states[:num_tokens, ...].copy_(
                     jagged_data.values, non_blocking=True
@@ -387,13 +392,21 @@ class InferenceRankingGR(torch.nn.Module):
                     jagged_data.num_candidates_offsets
                 )
                 # self.offload_kv_cache_wait(self._offload_states)
+                indptr = kvcache_metadata.kv_indptr.tolist()
+                print("[debug][kv_indptr]", indptr)
+                for i in range(len(indptr)-1):
+                    print("[debug][kv_pageids][Seq #{}]".format(i), 
+                          kvcache_metadata.kv_indices.tolist()[indptr[i]:indptr[i+1]])
+                print("[debug][kv_last_page]", kvcache_metadata.kv_last_page_len.tolist())
+                print("[debug][kv_cache]", kvcache_metadata.kv_cache_table[0].shape)
                 hstu_output = self._hstu_block.predict(
                     batch.batch_size,
                     num_tokens,
                     jagged_data.values,
                     jagged_data,
-                    self._kvcache_metadata,
+                    kvcache_metadata,
                 )
+                print(f"hstu_output is {hstu_output}")
                 jagged_data.values = hstu_output
 
             self._gpu_kv_cache_manager._offload_start_event.record(

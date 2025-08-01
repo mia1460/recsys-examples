@@ -14,8 +14,10 @@
 # limitations under the License.
 from dataclasses import dataclass
 from typing import List, Optional, Union
+from datetime import datetime
 
 import gin
+import os
 
 
 @gin.configurable
@@ -42,10 +44,15 @@ class TrainerArgs:
     ckpt_save_dir: str = "./checkpoints"
     ckpt_load_dir: str = ""
     pipeline_type: str = "native"  # none, native, prefetch
+    ckpt_save_at_end: bool = False
 
     def __post_init__(self):
         if isinstance(self.max_train_iters, str):
             self.max_train_iters = int(self.max_train_iters)
+
+        # Add date-based subdirectory in ckpt_save_dir
+        date_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+        self.ckpt_save_dir = os.path.join(self.ckpt_save_dir, date_str)
 
 
 @dataclass

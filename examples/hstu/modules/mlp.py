@@ -18,10 +18,24 @@ from typing import List, Optional
 import torch
 
 try:
-    from commons.utils.nvtx_op import output_nvtx_hook
+    
     from megatron.core.transformer.module import MegatronModule
 
-    BaseModule = MegatronModule
+    if not issubclass(MegatronModule, torch.nn.Module):
+        print("[warning] Mocked MegatronModule detected, fallback to nn.Module")
+        BaseModule = torch.nn.Module
+        def output_nvtx_hook(nvtx_tag):
+            def decorator(module):
+                @wraps(module)
+                def forward(*args, **kwags):
+                    return module(*args, **kwags)
+    
+                return forward
+    
+            return decorator
+    else:
+        from commons.utils.nvtx_op import output_nvtx_hook
+        BaseModule = MegatronModule
 except:
 
     def output_nvtx_hook(nvtx_tag):
