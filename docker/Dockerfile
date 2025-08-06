@@ -43,7 +43,7 @@ RUN apt update -y --fix-missing && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache pre-commit
+RUN pip install --no-cache-dir pre-commit
 
 FROM ${DEVEL_IMAGE} AS build
 
