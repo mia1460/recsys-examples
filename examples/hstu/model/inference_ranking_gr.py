@@ -268,7 +268,7 @@ class InferenceRankingGR(torch.nn.Module):
         if onload_length > 0:
             kv_page_ids = triton_concat_2D_jagged(
                 max_seq_len=onload_kv_page_indptr[-1]
-                + kv_cache_metadata.kv_indices[-1],
+                + kv_cache_metadata.kv_indptr[-1],
                 values_a=onload_kv_page_ids.view(-1, 1),
                 values_b=kv_cache_metadata.kv_indices.view(-1, 1),
                 offsets_a=onload_kv_page_indptr.to(torch.int64),
@@ -303,6 +303,9 @@ class InferenceRankingGR(torch.nn.Module):
         # preparation due to cudagraph codepath
         kv_cache_metadata.onload_history_kv_buffer = (
             self._kvcache_metadata.onload_history_kv_buffer[:]
+        )
+        kv_cache_metadata.onload_history_kv_events = (
+            self._kvcache_metadata.onload_history_kv_events[:]
         )
         kv_cache_metadata.kv_cache_table = self._kvcache_metadata.kv_cache_table[:]
 
@@ -391,7 +394,7 @@ class InferenceRankingGR(torch.nn.Module):
                     num_tokens,
                     jagged_data.values,
                     jagged_data,
-                    self._kvcache_metadata,
+                    kvcache_metadata,
                 )
                 jagged_data.values = hstu_output
 

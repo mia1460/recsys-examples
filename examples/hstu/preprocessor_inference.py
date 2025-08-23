@@ -229,6 +229,131 @@ class DataProcessor:
     def file_exists(self, name: str) -> bool:
         return os.path.isfile("%s/%s" % (os.getcwd(), name))
 
+class MovielensDataProcessor(DataProcessor):
+    """
+    Data processor for the Movielens dataset.
+
+    Args:
+        download_url (str): URL from which to download the dataset.
+        data_path (str): Path where the dataset will be stored.
+        file_name (str): Name of the file containing the dataset.
+        prefix (str): The root directory of the dataset.
+    """
+
+    def __init__(
+        self,
+        download_url: str,
+        data_path: str,
+        file_name: str,
+        prefix: str,
+    ) -> None:
+        super().__init__(download_url, data_path, file_name, prefix)
+        self._item_feature_name = "movie_id"
+        self._action_feature_name = "rating"
+        if self._prefix == "ml-1m":
+            self._contextual_feature_names = [
+                "user_id",
+                "sex",
+                "age_group",
+                "occupation",
+                "zip_code",
+            ]
+            self._rating_mapping = {
+                1: 0,
+                2: 1,
+                3: 2,
+                4: 3,
+                5: 4,
+            }
+        else:
+            assert self._prefix == "ml-20m"
+            # ml-20m
+            # ml-20m doesn't have user data.
+            self._contextual_feature_names = [
+                "user_id",
+            ]
+            self._rating_mapping = {
+                1: 0,
+                2: 1,
+                3: 2,
+                4: 3,
+                5: 4,
+                6: 5,
+                7: 6,
+                8: 7,
+                9: 8,
+                10: 9,
+            }
+        self._output_file: str = os.path.join(data_path, prefix, "processed_seqs.csv")
+
+    def download(self) -> None:
+        """
+        Download and decompress the dataset. The downloaded dataset will be saved in the "tmp" directory.
+        """
+        file_path = f"{self._data_path}{self._file_name}"
+        if not self.file_exists(file_path):
+            log.info(f"Downloading {self._download_url}")
+            urlretrieve(self._download_url, file_path, reporthook)
+        if file_path[-4:] == ".zip":
+            ZipFile(file_path, "r").extractall(path=self._data_path)
+        else:
+            with tarfile.open(file_path, "r:*") as tar_ref:
+                tar_ref.extractall(self._data_path)
+
+    def preprocess(self) -> None:
+        """
+        Preprocess the raw data. The support dataset are "ml-1m" and "ml-20m".
+        """
+        self.download()
+        if self._prefix == "ml-1m":
+            users = pd.read_csv(
+                f"{self._data_path}{self._prefix}/users.dat",
+                sep="::",
+                names=self._contextual_feature_names,
+            )
+            log_df = pd.read_csv(
+                f"{self._data_path}{self._prefix}/ratings.dat",
+                sep="::",
+                names=["user_id", "movie_id", "rating", "unix_timestamp"],
+            )
+        else:
+            assert self._prefix == "ml-20m"
+            # ml-20m
+            # ml-20m doesn't have user data.
+            users = None
+            # ratings: userId,movieId,rating,timestamp
+            log_df = pd.read_csv(
+                f"{self._data_path}{self._prefix}/ratings.csv",
+                sep=",",
+            )
+            log_df.rename(
+                columns={
+                    "userId": "user_id",
+                    "movieId": "movie_id",
+                    "timestamp": "unix_timestamp",
+                },
+                inplace=True,
+            )
+            log_df["rating"] = (log_df["rating"] * 2).astype(int)
+
+        log_df["movie_id"] = log_df["movie_id"].astype(int)
+        log_df["rating"] = log_df["rating"].map(self._rating_mapping).astype(int)
+        df_grouped_by_user = log_df.groupby("user_id").agg(list).reset_index()
+
+        contextual_feature_names = self._contextual_feature_names.copy()
+        contextual_feature_names.remove("user_id")
+        for col in contextual_feature_names:
+            users[col] = _one_hot_encode(users[col])
+        self._post_process(
+            users,
+            df_grouped_by_user,
+            "user_id",
+            contextual_feature_names=self._contextual_feature_names,
+            item_feature_name=self._item_feature_name,
+            action_feature_name=self._action_feature_name,
+            output_file=self._output_file,
+        )
+
 class DLRMKuaiRandProcessor(DataProcessor):
     """
 
