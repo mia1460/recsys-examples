@@ -67,6 +67,8 @@ class Batch:
     max_num_candidates: int
     num_candidates: Optional[torch.Tensor]
 
+    start_positions: Optional[torch.Tensor]
+
     def __post_init__(self):
         if len(set(self.features.keys())) != len(list(self.features.keys())):
             raise ValueError(f"duplicate features keys {list(self.features.keys())}")

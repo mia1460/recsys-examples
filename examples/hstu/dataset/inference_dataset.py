@@ -280,6 +280,9 @@ class InferenceDataset(IterableDataset[Batch]):
             num_candidates=torch.tensor(num_candidates, device=self._device)
             if self._max_num_candidates > 0
             else None,
+            start_positions=torch.tensor(sequence_startptrs, device=self._device) * 2
+            if sequence_startptrs is not None
+            else None,
         )
         if with_ranking_labels:
             return RankingBatch(labels = labels, **batch_kwargs)

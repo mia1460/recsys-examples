@@ -91,6 +91,7 @@ class HSTUBlockInference(torch.nn.Module):
                 seq_timestamps=None,
                 seq_embeddings=jd.values,
                 num_targets=jd.num_candidates,
+                seq_start_position=batch.start_positions if batch.start_positions is not None else None,
             )
 
         return jd
