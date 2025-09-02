@@ -112,6 +112,14 @@ class InferenceDataset(IterableDataset[Batch]):
             self._batch_logs_frame = pd.read_csv(
                 batch_logs_file, delimiter=",", nrows=batch_nrows
             )
+
+        # for test kv_cache accuracy
+        if False and "filter":
+            filter_user = 211 # 828 # 867 # 151 # 344 # 26 # 
+            print(f"[InferenceDataset] before filter {filter_user}, num seq logs: {len(self._seq_logs_frame)}, num batch logs: {len(self._batch_logs_frame)}")
+            self._seq_logs_frame = self._seq_logs_frame[self._seq_logs_frame[userid_name] == filter_user]
+            self._batch_logs_frame = self._batch_logs_frame[self._batch_logs_frame[userid_name] == filter_user]
+            print(f"[InferenceDataset] after filter {filter_user}, num seq logs: {len(self._seq_logs_frame)}, num batch logs: {len(self._batch_logs_frame)}")
         
         self._batch_logs_frame.sort_values(by=timestamp_names, inplace=True)
         num_total_samples = len(self._batch_logs_frame)
