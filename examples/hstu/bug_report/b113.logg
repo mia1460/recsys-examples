@@ -1,0 +1,166 @@
+# ⚠️ Batch 113 mismatch (max rel_diff difference: 1.67e-02), base_uid: tensor([380]), kv_uid: tensor([380]), base: [0] + 130, kvcache: [18] + 112
+
+Layer 0:
+--------------------------------------------------------------------------------
+  ✓ exact equal           layer_input | shape=(112, 512) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✓ exact equal  layer_norm_input.weight | shape=(512,) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✓ exact equal  layer_norm_input.bias | shape=(512,) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✓ exact equal          normed_input | shape=(112, 512) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✓ exact equal    linear_uvqk.weight | shape=(2048, 512) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✓ exact equal      linear_uvqk.bias | shape=(2048,) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✗ mismatch         lineared_uvqk | shape=(112, 2048) dtype=torch.bfloat16 | max_abs=7.812e-03 mean_abs=1.416e-07
+      bad tokens : [4, 15, 26, 31, 35, 36, 37, 52, 61, 67, 69, 71, 73, 81, 93, 94, 97, 99, 104, 106, 107, 108]
+      top token max_abs: 93:7.812e-03, 104:7.812e-03, 99:3.906e-03, 4:1.953e-03, 69:1.953e-03
+  ✗ mismatch            mixed_uvqk | shape=(112, 2048) dtype=torch.bfloat16 | max_abs=1.562e-02 mean_abs=1.024e-07
+      bad tokens : [4, 15, 26, 31, 35, 36, 37, 52, 61, 67, 69, 71, 73, 93, 94, 97, 99, 104, 106, 108]
+      top token max_abs: 93:1.562e-02, 99:1.953e-03, 4:9.766e-04, 36:9.766e-04, 69:9.766e-04
+  ✗ mismatch                   key | shape=(112, 4, 128) dtype=torch.bfloat16 | max_abs=1.953e-03 mean_abs=4.377e-08
+      bad tokens : [35, 73, 94, 99]
+      top token max_abs: 99:1.953e-03, 73:4.883e-04, 35:6.104e-05, 94:1.907e-06, 0:0.000e+00
+  ✗ mismatch                 value | shape=(112, 4, 128) dtype=torch.bfloat16 | max_abs=9.766e-04 mean_abs=3.912e-08
+      bad tokens : [4, 26, 31, 61, 71, 104, 106, 108]
+      top token max_abs: 4:9.766e-04, 104:9.766e-04, 106:1.221e-04, 31:6.104e-05, 71:6.104e-05
+  ✗ mismatch                 query | shape=(112, 4, 128) dtype=torch.bfloat16 | max_abs=9.766e-04 mean_abs=3.399e-08
+      bad tokens : [36, 37, 52, 69]
+      top token max_abs: 36:9.766e-04, 69:9.766e-04, 37:1.907e-06, 52:4.768e-07, 0:0.000e+00
+==> Layer 0 result: ✗ mismatch (worst max_abs=1.562e-02)
+
+Layer 1:
+--------------------------------------------------------------------------------
+  ✗ mismatch           layer_input | shape=(112, 512) dtype=torch.bfloat16 | max_abs=3.125e-02 mean_abs=3.174e-06
+      bad tokens : [36, 93, 104]
+      top token max_abs: 36:3.125e-02, 93:3.125e-02, 104:1.562e-02, 0:0.000e+00, 1:0.000e+00
+  ✓ exact equal  layer_norm_input.weight | shape=(512,) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✓ exact equal  layer_norm_input.bias | shape=(512,) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✗ mismatch          normed_input | shape=(112, 512) dtype=torch.bfloat16 | max_abs=7.812e-03 mean_abs=1.080e-06
+      bad tokens : [36, 93, 104]
+      top token max_abs: 93:7.812e-03, 104:7.812e-03, 36:1.953e-03, 0:0.000e+00, 1:0.000e+00
+  ✓ exact equal    linear_uvqk.weight | shape=(2048, 512) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✓ exact equal      linear_uvqk.bias | shape=(2048,) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✗ mismatch         lineared_uvqk | shape=(112, 2048) dtype=torch.bfloat16 | max_abs=6.250e-02 mean_abs=6.080e-06
+      bad tokens : [10, 15, 17, 20, 25, 36, 38, 44, 45, 46, 47, 48, 61, 65, 76, 79, 93, 96, 97, 104, 105, 106, 107]
+      top token max_abs: 104:6.250e-02, 45:3.125e-02, 93:3.125e-02, 36:1.562e-02, 105:1.562e-02
+  ✗ mismatch            mixed_uvqk | shape=(112, 2048) dtype=torch.bfloat16 | max_abs=3.125e-02 mean_abs=2.861e-06
+      bad tokens : [15, 17, 20, 25, 36, 38, 44, 45, 46, 47, 48, 61, 65, 76, 79, 93, 96, 97, 104, 105, 106, 107]
+      top token max_abs: 45:3.125e-02, 93:3.125e-02, 104:1.562e-02, 36:7.812e-03, 15:9.766e-04
+  ✗ mismatch                   key | shape=(112, 4, 128) dtype=torch.bfloat16 | max_abs=3.125e-02 mean_abs=1.967e-06
+      bad tokens : [15, 25, 36, 47, 48, 61, 93, 104, 105]
+      top token max_abs: 93:3.125e-02, 104:3.906e-03, 36:1.953e-03, 15:9.766e-04, 105:9.766e-04
+  ✗ mismatch                 value | shape=(112, 4, 128) dtype=torch.bfloat16 | max_abs=1.562e-02 mean_abs=2.414e-06
+      bad tokens : [17, 20, 36, 38, 44, 45, 46, 65, 93, 97, 104, 106, 107]
+      top token max_abs: 93:1.562e-02, 104:1.562e-02, 36:3.906e-03, 106:9.766e-04, 20:4.883e-04
+  ✗ mismatch                 query | shape=(112, 4, 128) dtype=torch.bfloat16 | max_abs=3.125e-02 mean_abs=2.727e-06
+      bad tokens : [36, 45, 93, 104]
+      top token max_abs: 45:3.125e-02, 93:3.125e-02, 104:1.562e-02, 36:9.766e-04, 0:0.000e+00
+==> Layer 1 result: ✗ mismatch (worst max_abs=6.250e-02)
+
+Layer 2:
+--------------------------------------------------------------------------------
+  ✗ mismatch           layer_input | shape=(112, 512) dtype=torch.bfloat16 | max_abs=2.500e-01 mean_abs=8.774e-05
+      bad tokens : [13, 16, 36, 47, 73, 77, 93, 104]
+      top token max_abs: 104:2.500e-01, 47:1.250e-01, 73:1.250e-01, 93:1.250e-01, 13:6.250e-02
+  ✓ exact equal  layer_norm_input.weight | shape=(512,) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✓ exact equal  layer_norm_input.bias | shape=(512,) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✗ mismatch          normed_input | shape=(112, 512) dtype=torch.bfloat16 | max_abs=1.562e-02 mean_abs=5.484e-06
+      bad tokens : [13, 16, 36, 47, 73, 77, 93, 104]
+      top token max_abs: 104:1.562e-02, 73:7.812e-03, 93:7.812e-03, 13:3.906e-03, 36:3.906e-03
+  ✓ exact equal    linear_uvqk.weight | shape=(2048, 512) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✓ exact equal      linear_uvqk.bias | shape=(2048,) dtype=torch.bfloat16 | max_abs=0.000e+00 mean_abs=0.000e+00
+  ✗ mismatch         lineared_uvqk | shape=(112, 2048) dtype=torch.bfloat16 | max_abs=6.250e-02 mean_abs=2.074e-05
+      bad tokens : [3, 13, 16, 18, 23, 24, 29, 36, 47, 56, 61, 63, 64, 66, 71, 73, 77, 86, 87, 89, 93, 104]
+      top token max_abs: 16:6.250e-02, 23:6.250e-02, 77:6.250e-02, 89:6.250e-02, 93:6.250e-02
+  ✗ mismatch            mixed_uvqk | shape=(112, 2048) dtype=torch.bfloat16 | max_abs=6.250e-02 mean_abs=9.477e-06
+      bad tokens : [3, 13, 16, 18, 23, 24, 29, 36, 47, 61, 63, 64, 66, 71, 73, 77, 86, 87, 89, 93, 104]
+      top token max_abs: 16:6.250e-02, 23:6.250e-02, 73:6.250e-02, 77:6.250e-02, 89:6.250e-02
+  ✗ mismatch                   key | shape=(112, 4, 128) dtype=torch.bfloat16 | max_abs=1.562e-02 mean_abs=5.364e-06
+      bad tokens : [13, 16, 36, 47, 73, 77, 93, 104]
+      top token max_abs: 16:1.562e-02, 36:1.562e-02, 73:1.562e-02, 104:1.562e-02, 77:7.812e-03
+  ✗ mismatch                 value | shape=(112, 4, 128) dtype=torch.bfloat16 | max_abs=6.250e-02 mean_abs=9.775e-06
+      bad tokens : [3, 13, 16, 24, 29, 36, 47, 63, 64, 73, 77, 87, 93, 104]
+      top token max_abs: 73:6.250e-02, 77:6.250e-02, 36:3.125e-02, 104:3.125e-02, 93:1.562e-02
+  ✗ mismatch                 query | shape=(112, 4, 128) dtype=torch.bfloat16 | max_abs=6.250e-02 mean_abs=9.596e-06
+      bad tokens : [13, 16, 18, 23, 36, 47, 61, 73, 77, 86, 93, 104]
+      top token max_abs: 23:6.250e-02, 36:3.125e-02, 73:3.125e-02, 86:3.125e-02, 93:3.125e-02
+==> Layer 2 result: ✗ mismatch (worst max_abs=2.500e-01)
+
+================================================================================
+Summary: total 3 layers | exact 0 | within tol 0 | mismatch 3
+Overall: mismatches found, please inspect details above.
+Compare directory: /workspace/recsys-separate_data/bug_fix/check_kvcache/kvcache_diff/new_code/mismatch/dump_dir/new_code_0902/u380
+num_tokens A=112 vs B=130, common layers: [0, 1]
+Tolerance: rtol=0, atol=0
+================================================================================
+
+Layer 0:
+--------------------------------------------------------------------------------
+  ✗ mismatch    jagged_attn_output | shape=(112, 512) dtype=torch.bfloat16 | max_abs=4.883e-04 mean_abs=1.123e-08
+      bad tokens : [36, 69]
+      top token max_abs: 36:4.883e-04, 69:7.629e-06, 0:0.000e+00, 1:0.000e+00, 2:0.000e+00
+  ✗ mismatch        parallel_input | shape=(112, 512) dtype=torch.bfloat16 | max_abs=7.812e-03 mean_abs=1.658e-07
+      bad tokens : [15, 36, 67, 69, 93, 104]
+      top token max_abs: 93:7.812e-03, 36:9.766e-04, 104:2.441e-04, 15:1.526e-05, 67:5.960e-08
+  ✗ mismatch  layer_output_before_residual | shape=(112, 512) dtype=torch.bfloat16 | max_abs=3.125e-02 mean_abs=3.129e-06
+      bad tokens : [36, 93, 104]
+      top token max_abs: 36:3.125e-02, 93:3.125e-02, 104:1.562e-02, 0:0.000e+00, 1:0.000e+00
+  ✗ mismatch          layer_output | shape=(112, 512) dtype=torch.bfloat16 | max_abs=3.125e-02 mean_abs=3.174e-06
+      bad tokens : [36, 93, 104]
+      top token max_abs: 36:3.125e-02, 93:3.125e-02, 104:1.562e-02, 0:0.000e+00, 1:0.000e+00
+==> Layer 0 result: ✗ mismatch (worst max_abs=3.125e-02)
+
+Layer 1:
+--------------------------------------------------------------------------------
+  ✗ mismatch    jagged_attn_output | shape=(112, 512) dtype=torch.bfloat16 | max_abs=3.906e-03 mean_abs=1.621e-07
+      bad tokens : [0, 1, 2, 3, 5, 6, 7, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21, 22, 23, 24, 26, 27, 29, 30, 32, 33, 34, 35, 38, 39, 40, 42, 44, 46, 47, 50, 51, 52, 54, 55, 56, 58, 59, 60, 61, 62, 63, 64, 65, 67, 69, 71, 73, 74, 75, 76, 77, 79, 80, 81, 82, 83, 84, 85, 86, 87, 90, 91, 92, 93, 94, 99, 104, 105, 109]
+      top token max_abs: 73:3.906e-03, 93:4.883e-04, 12:2.441e-04, 13:2.441e-04, 47:2.441e-04
+  ✗ mismatch        parallel_input | shape=(112, 512) dtype=torch.bfloat16 | max_abs=6.250e-02 mean_abs=5.633e-06
+      bad tokens : [13, 16, 36, 42, 47, 69, 73, 76, 77, 79, 93, 96, 104]
+      top token max_abs: 73:6.250e-02, 93:6.250e-02, 104:3.125e-02, 16:3.906e-03, 36:3.906e-03
+  ✗ mismatch  layer_output_before_residual | shape=(112, 512) dtype=torch.bfloat16 | max_abs=1.250e-01 mean_abs=8.249e-05
+      bad tokens : [13, 16, 36, 47, 73, 77, 93, 104]
+      top token max_abs: 73:1.250e-01, 93:1.250e-01, 104:1.250e-01, 13:6.250e-02, 47:6.250e-02
+  ✗ mismatch          layer_output | shape=(112, 512) dtype=torch.bfloat16 | max_abs=2.500e-01 mean_abs=8.774e-05
+      bad tokens : [13, 16, 36, 47, 73, 77, 93, 104]
+      top token max_abs: 104:2.500e-01, 47:1.250e-01, 73:1.250e-01, 93:1.250e-01, 13:6.250e-02
+==> Layer 1 result: ✗ mismatch (worst max_abs=2.500e-01)
+
+================================================================================
+Summary: total 2 layers | exact 0 | within tol 0 | mismatch 2
+Overall: mismatches found, please inspect details above.
+Layer 0:
+--------------------------------------------------------------------------------
+  ✓ exact equal            linear_uvqk.weight | shape=(2048, 512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal              linear_uvqk.bias | shape=(2048) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal       layer_norm_input.weight | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal         layer_norm_input.bias | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+Layer 1:
+--------------------------------------------------------------------------------
+  ✓ exact equal            linear_uvqk.weight | shape=(2048, 512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal              linear_uvqk.bias | shape=(2048) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal       layer_norm_input.weight | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal         layer_norm_input.bias | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+Layer 2:
+--------------------------------------------------------------------------------
+  ✓ exact equal            linear_uvqk.weight | shape=(2048, 512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal              linear_uvqk.bias | shape=(2048) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal       layer_norm_input.weight | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal         layer_norm_input.bias | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+Layer 0:
+--------------------------------------------------------------------------------
+  ✓ exact equal            linear_uvqk.weight | shape=(2048, 512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal              linear_uvqk.bias | shape=(2048) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal       layer_norm_input.weight | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal         layer_norm_input.bias | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+Layer 1:
+--------------------------------------------------------------------------------
+  ✓ exact equal            linear_uvqk.weight | shape=(2048, 512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal              linear_uvqk.bias | shape=(2048) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal       layer_norm_input.weight | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal         layer_norm_input.bias | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+Layer 2:
+--------------------------------------------------------------------------------
+  ✓ exact equal            linear_uvqk.weight | shape=(2048, 512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal              linear_uvqk.bias | shape=(2048) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal       layer_norm_input.weight | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+  ✓ exact equal         layer_norm_input.bias | shape=(512) dtype=torch.bfloat16 | max_abs= 0.000e+00 mean_abs= 0.000e+00
+
+Overall match: True
