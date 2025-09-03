@@ -82,6 +82,7 @@ class PagedHSTUInferLayer(torch.nn.Module):
             param.requires_grad = False
             param.copy_(torch.empty_like(param).uniform_(-0.5, 0.5))
         self._linear_uvqk_weight = self._linear_uvqk.weight.T.contiguous()
+        self._linear_uvqk_bias = self._linear_uvqk.bias.T.contiguous()
 
         # input norm
         if config.learnable_input_layernorm:
@@ -159,6 +160,7 @@ class PagedHSTUInferLayer(torch.nn.Module):
         layer_input: torch.Tensor,
         jd: JaggedData,
         kv_cache_metadata,
+        layer_idx: int,
     ) -> JaggedData:
         normed_input = F.layer_norm(
             layer_input,
@@ -167,8 +169,13 @@ class PagedHSTUInferLayer(torch.nn.Module):
             bias=self._input_layernorm_bias,
             eps=self._eps,
         )
+        # print(f"normed_input.shape is {normed_input.shape}, layer_idx is {layer_idx}")
 
-        mixed_uvqk = F.silu(self._linear_uvqk(normed_input))
+        lineared_uvqk = self._linear_uvqk(normed_input)
+        
+        # mixed_uvqk = F.silu(self._linear_uvqk(normed_input))
+        mixed_uvqk = F.silu(lineared_uvqk)
+        # print(f"mixed_uvqk.shape is {mixed_uvqk.shape}, layer_idx is {layer_idx}")
         (user, value, query, key) = torch.split(
             mixed_uvqk,
             self._split_arg_list,
@@ -200,6 +207,42 @@ class PagedHSTUInferLayer(torch.nn.Module):
         kv_cache_metadata.onload_history_kv_events[self.layer_idx].wait(
             torch.cuda.current_stream()
         )
+
+        small_token = 118 # 3 # 122 # 118 # 112 # 134 # 268 # 270 # 290 # 280 #  134 # 112 # 
+        large_token = 174 # 15 # 134 # 174 # 130 # 156 # 460 # 428 # 312 # 452 # 156 # 130 # 
+        save_qkv = True
+        save_out = True
+        dump_dir_prefix = "/workspace/recsys-separate_data/bug_fix/check_kvcache/kvcache_diff/new_code/mismatch/dump_dir/new_code_0902/u867"
+        if (num_tokens == small_token or num_tokens == large_token) and save_qkv:
+            dump_dir = dump_dir_prefix
+            if num_tokens == large_token:
+                torch.save({"layer_input": layer_input[-small_token:].detach().cpu(),
+                    "layer_norm_input.weight": self._input_layernorm_weight.cpu(),
+                    "layer_norm_input.bias": self._input_layernorm_bias.cpu(),
+                    "normed_input": normed_input[-small_token:].detach().cpu(),
+                    "linear_uvqk.weight": self._linear_uvqk.weight.cpu(),
+                    "linear_uvqk.bias": self._linear_uvqk.bias.cpu(),
+                    "lineared_uvqk": lineared_uvqk[-small_token:].detach().cpu(),
+                    "mixed_uvqk": mixed_uvqk[-small_token:].detach().cpu(),
+                    "key": key[-small_token:].detach().cpu(),
+                    "value": value[-small_token:].detach().cpu(),
+                    "query": query[-small_token:].detach().cpu()},
+                   f"{dump_dir}/dump_qkv_{num_tokens}_layer_{layer_idx}.pt")
+            else:
+                torch.save({"layer_input": layer_input.detach().cpu(),
+                    "layer_norm_input.weight": self._input_layernorm_weight.cpu(),
+                    "layer_norm_input.bias": self._input_layernorm_bias.cpu(),
+                    "normed_input": normed_input.detach().cpu(),
+                    "linear_uvqk.weight": self._linear_uvqk.weight.cpu(),
+                    "linear_uvqk.bias": self._linear_uvqk.bias.cpu(),
+                    "lineared_uvqk": lineared_uvqk.detach().cpu(),
+                    "mixed_uvqk": mixed_uvqk.detach().cpu(),
+                    "key": key.detach().cpu(),
+                    "value": value.detach().cpu(),
+                    "query": query.detach().cpu()},
+                   f"{dump_dir}/dump_qkv_{num_tokens}_layer_{layer_idx}.pt")
+            print(f"save dump_qkv_{num_tokens}_layer_{layer_idx}.pt done")
+
         jagged_attn_output = hstu_attn.hstu_attn_varlen_func(
             query,
             key,
@@ -235,8 +278,32 @@ class PagedHSTUInferLayer(torch.nn.Module):
         )
 
         layer_output = self._linear_proj(parallel_input)
+
+        layer_output_before_residual = layer_output.clone()
+
         if self._residual:
             torch.add(layer_output, layer_input, out=layer_output)
+
+        if (num_tokens == small_token or num_tokens == large_token) and save_out:
+            dump_dir = dump_dir_prefix
+            # proj_full_then_slice = self._linear_proj(parallel_input)[-small_token:]          # 先 452x 再切 280
+            # proj_slice_direct   = self._linear_proj(parallel_input[-small_token:])           # 直接 280x
+            # print("Δ(proj_full_then_slice vs proj_slice_direct) L∞ =",
+            #       (proj_full_then_slice - proj_slice_direct).abs().max().item())
+            if "save" and True:
+                if num_tokens == large_token:
+                    torch.save({"jagged_attn_output": jagged_attn_output[-small_token:].detach().cpu(),
+                        "parallel_input": parallel_input[-small_token:].detach().cpu(),
+                        "layer_output_before_residual": layer_output_before_residual[-small_token:].detach().cpu(),
+                        "layer_output": layer_output[-small_token:].detach().cpu()},
+                       f"{dump_dir}/dump_output_{num_tokens}_layer_{layer_idx}.pt")
+                else:
+                    torch.save({"jagged_attn_output": jagged_attn_output.detach().cpu(),
+                        "parallel_input": parallel_input.detach().cpu(),
+                        "layer_output_before_residual": layer_output_before_residual.detach().cpu(),
+                        "layer_output": layer_output.detach().cpu()},
+                       f"{dump_dir}/dump_output_{num_tokens}_layer_{layer_idx}.pt")
+                print(f"save dump_output_{num_tokens}_layer_{layer_idx}.pt done")
 
         return layer_output
 

@@ -280,10 +280,12 @@ class InferenceRankingGR(torch.nn.Module):
             else:
                 newk = k
             new_state_dict[newk] = model_state_dict[k] if not is_transposed else model_state_dict[k].T
+            # print(f"newk is {newk}, model_state_dict[k].shape is {model_state_dict[k].shape}, new_state_dict[newk].shape is {new_state_dict[newk].shape}")
 
         unloaded_modules = super().load_state_dict(new_state_dict, *args, **kwargs)
         for hstu_layer in self._hstu_block._attention_layers:
             hstu_layer._linear_uvqk_weight.copy_(hstu_layer._linear_uvqk.weight.T)
+            hstu_layer._linear_uvqk_bias.copy_(hstu_layer._linear_uvqk.bias.T)
         
         assert unloaded_modules.missing_keys == ['_embedding_collection._dynamic_embedding_collection._embedding_tables._empty_tensor']
         if self._hstu_config.contextual_max_seqlen != 0:
@@ -460,6 +462,7 @@ class InferenceRankingGR(torch.nn.Module):
             )
 
             num_tokens = batch.features.values().shape[0]
+            print(f"num_tokens: {num_tokens}")
             if self.use_cudagraph:
                 self._hidden_states[:num_tokens, ...].copy_(
                     jagged_data.values, non_blocking=True

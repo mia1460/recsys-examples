@@ -72,10 +72,12 @@ class HSTUBlockInference(torch.nn.Module):
     ) -> torch.Tensor:
         if self._hstu_graph is None or not use_cudagraph:
             hidden_data = hidden_states
+            layer_idx = 0
             for hstu_layer in self._attention_layers:
                 hidden_data = hstu_layer.forward_naive(
-                    batch_size, num_tokens, hidden_data, jd, kv_cache_metadata
+                    batch_size, num_tokens, hidden_data, jd, kv_cache_metadata, layer_idx = layer_idx
                 )
+                layer_idx += 1
             return hidden_data
         else:
             return self.predict_cudagraph(

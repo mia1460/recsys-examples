@@ -267,7 +267,7 @@ def run_dataset_with_kvcache_option(
             if batch_0 is not None:
                 num_tokens = batch_0.features.values().shape[0]
                 logits = model_predict.forward(batch_0, uids[non_contextual_mask].int(), new_cache_start_pos[non_contextual_mask])
-                eval_module(logits, batch_0.labels)
+                # eval_module(logits, batch_0.labels)
                 num_batches_ctr += 1
                 if ret_logit_uid:
                     logit_list.append(logits.cpu())
@@ -380,7 +380,7 @@ def run_ranking_gr_inference(
             hstu_config=hstu_config,
             kvcache_config=kv_cache_config,
             task_config=task_config,
-            use_cudagraph=True,
+            use_cudagraph=False,
             cudagraph_configs=hstu_cudagraph_configs,
         )
         if hstu_config.bf16:
